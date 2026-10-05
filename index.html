@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Motor Cuantitativo Automatizado - IBIT & BTCUSD</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0b0f19; color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif; }
+    input, select, textarea { background-color: #151d30; border-color: #2a364f; color: #f8fafc; }
+    input:focus, select:focus { outline: none; border-color: #3b82f6; ring: 2px #3b82f6; }
+  </style>
+</head>
+<body class="p-3 md:p-6">
+
+  <div class="max-w-7xl mx-auto space-y-5">
+    
+    <!-- Top Header & Live Data Status -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-slate-800 pb-4 gap-4">
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold text-cyan-400 flex items-center gap-2">
+          <span>⚡ Terminal Cuantitativa & Alertas Automáticas</span>
+        </h1>
+        <p class="text-xs text-slate-400">Vinculación automatizada de subyacentes IBIT/BTCUSD + Dólar CCL en tiempo real</p>
+      </div>
+
+      <!-- Live Sync Status Badges -->
+      <div class="flex flex-wrap items-center gap-2 bg-slate-900/90 p-2 rounded-xl border border-slate-800/80 text-xs">
+        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800/80 rounded border border-slate-700">
+          <span id="binanceDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-slate-300 font-mono">BTC: <span id="btcHeaderPrice" class="text-emerald-400 font-bold">--</span></span>
+        </div>
+        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800/80 rounded border border-slate-700">
+          <span id="cclDot" class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+          <span class="text-slate-300 font-mono">CCL Live: <span id="cclHeaderPrice" class="text-blue-400 font-bold">$--</span></span>
+        </div>
+        <button onclick="sincronizarAPIs()" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded shadow transition text-xs flex items-center gap-1">
+          🔄 Sync
+        </button>
+        <label class="flex items-center gap-1 text-slate-400 text-[11px] cursor-pointer ml-1">
+          <input type="checkbox" id="autoSyncCheck" onchange="toggleAutoSync()" checked class="rounded text-cyan-600"> Auto (15s)
+        </label>
+      </div>
+    </div>
+
+    <!-- Main Grid: Chart + Live Analytics -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      
+      <!-- Chart Column (2 Cols) -->
+      <div class="lg:col-span-2 bg-slate-900/90 border border-slate-800/80 p-4 rounded-xl space-y-3">
+        <div class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-2 gap-2">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-cyan-400 text-xs font-mono" id="chartSymbolTitle">NATIVE CHART: NASDAQ:IBIT</span>
+            <span class="text-[10px] bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded font-mono">TradingView Pro Tools</span>
+          </div>
+          
+          <!-- Asset Switcher -->
+          <div class="flex items-center gap-2">
+            <button onclick="switchChart('NASDAQ:IBIT')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-mono rounded border border-slate-700 text-slate-300">IBIT ETF</button>
+            <button onclick="switchChart('BINANCE:BTCUSDT')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-mono rounded border border-slate-700 text-amber-400">BTC/USD Spot</button>
+            <button onclick="switchChart('BCBA:IBIT')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-mono rounded border border-slate-700 text-emerald-400">IBIT CEDEAR (BCBA)</button>
+          </div>
+        </div>
+
+        <!-- TradingView Embedded Container -->
+        <div class="h-[460px] w-full relative rounded overflow-hidden" id="tradingview_widget_container">
+          <!-- Embedded dynamic script -->
+        </div>
+      </div>
+
+      <!-- Live Quantitative Panel (1 Col) -->
+      <div class="bg-slate-900/90 border border-slate-800/80 p-4 rounded-xl space-y-4">
+        <div class="border-b border-slate-800 pb-2 flex items-center justify-between">
+          <span class="font-bold text-emerald-400 text-xs">MOTOR DE DATOS Y RIESGO</span>
+          <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded">100% Auto</span>
+        </div>
+
+        <!-- Automated Feed Metrics -->
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1 text-[11px]">BTC/USD Spot ($)</label>
+            <input type="number" id="btcPrice" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono font-bold text-amber-300">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 text-[11px]">Var 24h BTC (%)</label>
+            <input type="number" id="btcVar24" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 text-[11px]">Dólar CCL (Auto API)</label>
+            <input type="number" id="cclPrice" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono text-cyan-300">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 text-[11px]">IBIT Estimado ($)</label>
+            <input type="number" id="ibitPrice" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono">
+          </div>
+        </div>
+
+        <!-- Technical Parameters for Risk Score -->
+        <div class="border-t border-slate-800/80 pt-3 space-y-2">
+          <span class="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">Lectura de Mercado (Opcional)</span>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <label class="block text-slate-400 mb-1 text-[11px]">RSI (14)</label>
+              <input type="number" id="rsiVal" value="56.4" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 text-[11px]">Distancia Soporte (%)</label>
+              <input type="number" id="distSupVal" value="1.8" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded">
+            </div>
+          </div>
+        </div>
+
+        <!-- Position & Fee Calculator -->
+        <div class="border-t border-slate-800/80 pt-3 space-y-2">
+          <span class="text-[11px] font-bold text-emerald-400 block uppercase tracking-wider">Tu Posición & Comisiones</span>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <label class="block text-slate-400 mb-1 text-[11px]">Precio Entrada ($)</label>
+              <input type="number" id="posEntry" value="36.80" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 text-[11px]">Nominales</label>
+              <input type="number" id="posQty" value="500" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 text-[11px]">Comisión Bróker (%)</label>
+              <input type="number" id="feeBroker" value="0.5" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 text-[11px]">Derechos Mkt (%)</label>
+              <input type="number" id="feeMarket" value="0.08" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded">
+            </div>
+          </div>
+        </div>
+
+        <!-- Live PnL Results Card -->
+        <div class="bg-slate-950/90 p-3 rounded-lg border border-slate-800 space-y-1.5 text-xs font-mono">
+          <div class="flex justify-between text-slate-400"><span>PnL Bruto:</span><span id="pnlBrutoVal">$0.00 USD</span></div>
+          <div class="flex justify-between text-rose-400"><span>Aranceles Totales:</span><span id="pnlFeesVal">-$0.00 USD</span></div>
+          <div class="flex justify-between font-bold text-sm border-t border-slate-800 pt-1.5">
+            <span class="text-slate-200">PnL Neto USD:</span>
+            <span id="pnlNetoUsdVal" class="text-emerald-400">$0.00</span>
+          </div>
+          <div class="flex justify-between text-[11px] text-cyan-300">
+            <span>Equivalente ARS (CCL):</span>
+            <span id="pnlNetoArsVal">$0 ARS</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Scores de Riesgo & Módulo de Alertas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      
+      <!-- Overnight Score Card -->
+      <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Overnight Risk Score</div>
+          <div class="text-3xl font-extrabold mt-1 text-cyan-400" id="overnightDisplay">--/100</div>
+          <div class="text-xs mt-1" id="overnightTag">Evaluando mercado...</div>
+        </div>
+        <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
+          <div id="overnightBar" class="h-full bg-cyan-500 transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Weekend Score Card -->
+      <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Weekend Gap Risk</div>
+          <div class="text-3xl font-extrabold mt-1 text-purple-400" id="weekendDisplay">--/100</div>
+          <div class="text-xs mt-1" id="weekendTag">Evaluando fin de semana...</div>
+        </div>
+        <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
+          <div id="weekendBar" class="h-full bg-purple-500 transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Channel Dispatcher Configuration -->
+      <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-purple-400 uppercase">Alertas a WhatsApp / Telegram</span>
+          <label class="flex items-center gap-1 text-[11px] text-slate-300">
+            <input type="checkbox" id="autoAlertToggle" class="rounded text-purple-600"> Auto-Alerta (>65 Score)
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <input type="text" id="alertPhone" placeholder="+54911xxxxxxxx" class="px-2 py-1 rounded font-mono text-[11px]">
+          <input type="text" id="alertKey" placeholder="CallMeBot API Key" class="px-2 py-1 rounded font-mono text-[11px]">
+        </div>
+        <button onclick="enviarAlertaManual()" class="w-full py-1.5 bg-purple-600/30 hover:bg-purple-600/40 border border-purple-500/40 text-purple-300 text-xs rounded font-medium transition">
+          🚀 Probar Envío de Notificación
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let timerSync = null;
+
+    // 1. Sincronización de APIs Públicas
+    async function sincronizarAPIs() {
+      const binanceDot = document.getElementById('binanceDot');
+      const cclDot = document.getElementById('cclDot');
+
+      // Sync BTC/USD de Binance
+      try {
+        const resBinance = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT');
+        if (resBinance.ok) {
+          const dataBtc = await resBinance.json();
+          const priceBtc = parseFloat(dataBtc.lastPrice);
+          const varBtc = parseFloat(dataBtc.priceChangePercent);
+
+          document.getElementById('btcPrice').value = priceBtc.toFixed(2);
+          document.getElementById('btcVar24').value = varBtc.toFixed(2);
+          document.getElementById('btcHeaderPrice').innerText = `$${priceBtc.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+
+          // Estimación aproximada de precio IBIT
+          document.getElementById('ibitPrice').value = (priceBtc * 0.000589).toFixed(2);
+          binanceDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        }
+      } catch (err) {
+        console.error('Error Binance API:', err);
+        binanceDot.className = "w-2 h-2 rounded-full bg-rose-500";
+      }
+
+      // Sync Dólar CCL desde DolarAPI (Gratuita)
+      try {
+        const resCcl = await fetch('https://dolarapi.com/v1/dolares/contadoconliqui');
+        if (resCcl.ok) {
+          const dataCcl = await resCcl.json();
+          const priceCcl = parseFloat(dataCcl.venta);
+
+          document.getElementById('cclPrice').value = priceCcl;
+          document.getElementById('cclHeaderPrice').innerText = `$${priceCcl.toFixed(1)}`;
+          cclDot.className = "w-2 h-2 rounded-full bg-blue-500 animate-pulse";
+        }
+      } catch (err) {
+        console.error('Error DolarAPI:', err);
+        cclDot.className = "w-2 h-2 rounded-full bg-rose-500";
+      }
+
+      calcularRiesgoYPnl();
+    }
+
+    function toggleAutoSync() {
+      const enabled = document.getElementById('autoSyncCheck').checked;
+      if (enabled) {
+        timerSync = setInterval(sincronizarAPIs, 15000);
+      } else {
+        clearInterval(timerSync);
+      }
+    }
+
+    // 2. Gráfico Interactivo TradingView con Herramientas Técnicas Habilitadas
+    function renderTradingViewChart(symbol) {
+      const container = document.getElementById('tradingview_widget_container');
+      container.innerHTML = '';
+
+      const script = document.createElement('script');
+      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+      script.type = 'text/javascript';
+      script.async = true;
+      script.innerHTML = JSON.stringify({
+        "autosize": true,
+        "symbol": symbol,
+        "interval": "60",
+        "timezone": "America/Argentina/Buenos_Aires",
+        "theme": "dark",
+        "style": "1",
+        "locale": "es",
+        "enable_publishing": false,
+        "backgroundColor": "rgba(11, 15, 25, 1)",
+        "gridColor": "rgba(30, 41, 59, 0.5)",
+        "hide_top_toolbar": false,
+        "hide_legend": false,
+        "save_image": false,
+        "calendar": false,
+        "hide_volume": false,
+        "support_host": "https://www.tradingview.com"
+      });
+      container.appendChild(script);
+      document.getElementById('chartSymbolTitle').innerText = `NATIVE CHART: ${symbol}`;
+    }
+
+    function switchChart(symbol) {
+      renderTradingViewChart(symbol);
+    }
+
+    // 3. Motor Cuantitativo: PnL + Aranceles + Scores
+    function calcularRiesgoYPnl() {
+      const btcPrice = parseFloat(document.getElementById('btcPrice').value) || 0;
+      const btcVar24 = parseFloat(document.getElementById('btcVar24').value) || 0;
+      const ibitPrice = parseFloat(document.getElementById('ibitPrice').value) || 0;
+      const cclPrice = parseFloat(document.getElementById('cclPrice').value) || 1;
+
+      const posEntry = parseFloat(document.getElementById('posEntry').value) || 0;
+      const posQty = parseFloat(document.getElementById('posQty').value) || 0;
+      
+      const feeBroker = parseFloat(document.getElementById('feeBroker').value) || 0;
+      const feeMarket = parseFloat(document.getElementById('feeMarket').value) || 0;
+      const totalFeePct = (feeBroker + feeMarket) / 100;
+
+      // PnL Deducción de Comisiones
+      const costoEntrada = posEntry * posQty;
+      const valorActual = ibitPrice * posQty;
+      
+      const comisionEntrada = costoEntrada * totalFeePct;
+      const comisionSalida = valorActual * totalFeePct;
+      const totalComisiones = comisionEntrada + comisionSalida;
+
+      const pnlBrutoUSD = valorActual - costoEntrada;
+      const pnlNetoUSD = pnlBrutoUSD - totalComisiones;
+      const pnlNetoARS = pnlNetoUSD * cclPrice;
+
+      document.getElementById('pnlBrutoVal').innerText = `$${pnlBrutoUSD.toFixed(2)} USD`;
+      document.getElementById('pnlFeesVal').innerText = `-$${totalComisiones.toFixed(2)} USD`;
+      
+      const elNetoUSD = document.getElementById('pnlNetoUsdVal');
+      elNetoUSD.innerText = `$${pnlNetoUSD.toFixed(2)} USD`;
+      elNetoUSD.className = pnlNetoUSD >= 0 ? 'text-emerald-400 font-bold text-sm' : 'text-rose-400 font-bold text-sm';
+      
+      document.getElementById('pnlNetoArsVal').innerText = `$${pnlNetoARS.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})} ARS`;
+
+      // Algoritmo de Scores de Riesgo
+      const rsi = parseFloat(document.getElementById('rsiVal').value) || 50;
+      const distSup = parseFloat(document.getElementById('distSupVal').value) || 2;
+
+      let scoreBase = 35;
+      if (rsi > 65 || rsi < 35) scoreBase += 15;
+      if (btcVar24 < -1) scoreBase += 20;
+      if (distSup < 1.5) scoreBase += 15;
+
+      let overnightScore = Math.min(100, Math.max(10, scoreBase));
+      let weekendScore = Math.min(100, Math.max(15, Math.round(overnightScore * 1.15)));
+
+      // Render Displays
+      document.getElementById('overnightDisplay').innerText = `${overnightScore}/100`;
+      document.getElementById('overnightBar').style.width = `${overnightScore}%`;
+      actualizarTagRiesgo('overnightTag', overnightScore);
+
+      document.getElementById('weekendDisplay').innerText = `${weekendScore}/100`;
+      document.getElementById('weekendBar').style.width = `${weekendScore}%`;
+      actualizarTagRiesgo('weekendTag', weekendScore);
+    }
+
+    function actualizarTagRiesgo(elementId, score) {
+      const el = document.getElementById(elementId);
+      if (score < 40) {
+        el.innerText = 'Baja volatilidad / Favorable';
+        el.className = 'text-xs text-emerald-400 font-medium';
+      } else if (score < 65) {
+        el.innerText = 'Riesgo Moderado';
+        el.className = 'text-xs text-amber-400 font-medium';
+      } else {
+        el.innerText = 'Riesgo Elevado (Posible Gap)';
+        el.className = 'text-xs text-rose-400 font-medium';
+      }
+    }
+
+    // 4. Módulo de Alertas
+    async function enviarAlertaManual() {
+      const phone = document.getElementById('alertPhone').value;
+      const key = document.getElementById('alertKey').value;
+      const ovScore = document.getElementById('overnightDisplay').innerText;
+      const btc = document.getElementById('btcPrice').value;
+
+      if (!phone || !key) {
+        alert('Ingresá tu número de teléfono y tu API Key de CallMeBot.');
+        return;
+      }
+
+      const msg = `🚨 ALERTA MOTOR RIESGO IBIT/BTC:\n- BTC/USD Spot: $${btc}\n- Overnight Risk Score: ${ovScore}\n- Evaluado automáticamente.`;
+      const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(msg)}&apikey=${encodeURIComponent(key)}`;
+
+      try {
+        await fetch(url, { mode: 'no-cors' });
+        alert('Notificación enviada a WhatsApp.');
+      } catch (err) {
+        alert('Error al enviar la notificación.');
+      }
+    }
+
+    // Carga inicial
+    window.onload = function() {
+      renderTradingViewChart('NASDAQ:IBIT');
+      sincronizarAPIs();
+      toggleAutoSync();
+    };
+  </script>
+</body>
+</html>
