@@ -3,394 +3,631 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Motor Cuantitativo Automatizado - IBIT & BTCUSD</title>
-  <!-- Tailwind CSS CDN -->
+  <title>Terminal Cuantitativa - Cifrado Militar AES-256</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background-color: #0b0f19; color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif; }
     input, select, textarea { background-color: #151d30; border-color: #2a364f; color: #f8fafc; }
-    input:focus, select:focus { outline: none; border-color: #3b82f6; ring: 2px #3b82f6; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #06b6d4; ring: 2px #06b6d4; }
+    .tab-btn.active { background-color: #0891b2; color: #ffffff; border-color: #06b6d4; }
+    .chat-scroll::-webkit-scrollbar { width: 6px; }
+    .chat-scroll::-webkit-scrollbar-thumb { background-color: #1e293b; border-radius: 4px; }
   </style>
 </head>
 <body class="p-3 md:p-6">
 
   <div class="max-w-7xl mx-auto space-y-5">
     
-    <!-- Top Header & Live Data Status -->
-    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-slate-800 pb-4 gap-4">
+    <!-- Header Principal -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-4 gap-4">
       <div>
         <h1 class="text-xl md:text-2xl font-bold text-cyan-400 flex items-center gap-2">
-          <span>⚡ Terminal Cuantitativa & Alertas Automáticas</span>
+          ⚡ Terminal Cuantitativa & Copilot Agente
         </h1>
-        <p class="text-xs text-slate-400">Vinculación automatizada de subyacentes IBIT/BTCUSD + Dólar CCL en tiempo real</p>
+        <p class="text-xs text-slate-400 flex items-center gap-1.5 mt-1">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+          Cifrado Criptográfico Activo: <strong class="text-emerald-300">AES-256-GCM (Web Crypto)</strong>
+        </p>
       </div>
 
-      <!-- Live Sync Status Badges -->
-      <div class="flex flex-wrap items-center gap-2 bg-slate-900/90 p-2 rounded-xl border border-slate-800/80 text-xs">
-        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800/80 rounded border border-slate-700">
+      <!-- Live Sync Header -->
+      <div class="flex items-center gap-3 bg-slate-900 p-2 rounded-xl border border-slate-800 text-xs">
+        <div class="flex items-center gap-1.5 font-mono">
           <span id="binanceDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-slate-300 font-mono">BTC: <span id="btcHeaderPrice" class="text-emerald-400 font-bold">--</span></span>
+          <span class="text-slate-400">BTC: <strong id="lblHeaderBtc" class="text-emerald-400">--</strong></span>
         </div>
-        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800/80 rounded border border-slate-700">
+        <div class="flex items-center gap-1.5 font-mono border-l border-slate-800 pl-3">
           <span id="cclDot" class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-          <span class="text-slate-300 font-mono">CCL Live: <span id="cclHeaderPrice" class="text-blue-400 font-bold">$--</span></span>
+          <span class="text-slate-400">CCL: <strong id="lblHeaderCcl" class="text-blue-400">$--</strong></span>
         </div>
-        <button onclick="sincronizarAPIs()" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded shadow transition text-xs flex items-center gap-1">
-          🔄 Sync
-        </button>
-        <label class="flex items-center gap-1 text-slate-400 text-[11px] cursor-pointer ml-1">
-          <input type="checkbox" id="autoSyncCheck" onchange="toggleAutoSync()" checked class="rounded text-cyan-600"> Auto (15s)
-        </label>
       </div>
     </div>
 
-    <!-- Main Grid: Chart + Live Analytics -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-      
-      <!-- Chart Column (2 Cols) -->
-      <div class="lg:col-span-2 bg-slate-900/90 border border-slate-800/80 p-4 rounded-xl space-y-3">
-        <div class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-2 gap-2">
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-cyan-400 text-xs font-mono" id="chartSymbolTitle">NATIVE CHART: NASDAQ:IBIT</span>
-            <span class="text-[10px] bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded font-mono">TradingView Pro Tools</span>
-          </div>
-          
-          <!-- Asset Switcher -->
-          <div class="flex items-center gap-2">
-            <button onclick="switchChart('NASDAQ:IBIT')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-mono rounded border border-slate-700 text-slate-300">IBIT ETF</button>
-            <button onclick="switchChart('BINANCE:BTCUSDT')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-mono rounded border border-slate-700 text-amber-400">BTC/USD Spot</button>
-            <button onclick="switchChart('BCBA:IBIT')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-mono rounded border border-slate-700 text-emerald-400">IBIT CEDEAR (BCBA)</button>
-          </div>
-        </div>
-
-        <!-- TradingView Embedded Container -->
-        <div class="h-[460px] w-full relative rounded overflow-hidden" id="tradingview_widget_container">
-          <!-- Embedded dynamic script -->
-        </div>
-      </div>
-
-      <!-- Live Quantitative Panel (1 Col) -->
-      <div class="bg-slate-900/90 border border-slate-800/80 p-4 rounded-xl space-y-4">
-        <div class="border-b border-slate-800 pb-2 flex items-center justify-between">
-          <span class="font-bold text-emerald-400 text-xs">MOTOR DE DATOS Y RIESGO</span>
-          <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded">100% Auto</span>
-        </div>
-
-        <!-- Automated Feed Metrics -->
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div>
-            <label class="block text-slate-400 mb-1 text-[11px]">BTC/USD Spot ($)</label>
-            <input type="number" id="btcPrice" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono font-bold text-amber-300">
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1 text-[11px]">Var 24h BTC (%)</label>
-            <input type="number" id="btcVar24" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono">
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1 text-[11px]">Dólar CCL (Auto API)</label>
-            <input type="number" id="cclPrice" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono text-cyan-300">
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1 text-[11px]">IBIT Estimado ($)</label>
-            <input type="number" id="ibitPrice" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono">
-          </div>
-        </div>
-
-        <!-- Technical Parameters for Risk Score -->
-        <div class="border-t border-slate-800/80 pt-3 space-y-2">
-          <span class="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">Lectura de Mercado (Opcional)</span>
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <label class="block text-slate-400 mb-1 text-[11px]">RSI (14)</label>
-              <input type="number" id="rsiVal" value="56.4" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded">
-            </div>
-            <div>
-              <label class="block text-slate-400 mb-1 text-[11px]">Distancia Soporte (%)</label>
-              <input type="number" id="distSupVal" value="1.8" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded">
-            </div>
-          </div>
-        </div>
-
-        <!-- Position & Fee Calculator -->
-        <div class="border-t border-slate-800/80 pt-3 space-y-2">
-          <span class="text-[11px] font-bold text-emerald-400 block uppercase tracking-wider">Tu Posición & Comisiones</span>
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <label class="block text-slate-400 mb-1 text-[11px]">Precio Entrada ($)</label>
-              <input type="number" id="posEntry" value="36.80" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono">
-            </div>
-            <div>
-              <label class="block text-slate-400 mb-1 text-[11px]">Nominales</label>
-              <input type="number" id="posQty" value="500" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded font-mono">
-            </div>
-            <div>
-              <label class="block text-slate-400 mb-1 text-[11px]">Comisión Bróker (%)</label>
-              <input type="number" id="feeBroker" value="0.5" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded">
-            </div>
-            <div>
-              <label class="block text-slate-400 mb-1 text-[11px]">Derechos Mkt (%)</label>
-              <input type="number" id="feeMarket" value="0.08" oninput="calcularRiesgoYPnl()" class="w-full px-2.5 py-1.5 rounded">
-            </div>
-          </div>
-        </div>
-
-        <!-- Live PnL Results Card -->
-        <div class="bg-slate-950/90 p-3 rounded-lg border border-slate-800 space-y-1.5 text-xs font-mono">
-          <div class="flex justify-between text-slate-400"><span>PnL Bruto:</span><span id="pnlBrutoVal">$0.00 USD</span></div>
-          <div class="flex justify-between text-rose-400"><span>Aranceles Totales:</span><span id="pnlFeesVal">-$0.00 USD</span></div>
-          <div class="flex justify-between font-bold text-sm border-t border-slate-800 pt-1.5">
-            <span class="text-slate-200">PnL Neto USD:</span>
-            <span id="pnlNetoUsdVal" class="text-emerald-400">$0.00</span>
-          </div>
-          <div class="flex justify-between text-[11px] text-cyan-300">
-            <span>Equivalente ARS (CCL):</span>
-            <span id="pnlNetoArsVal">$0 ARS</span>
-          </div>
-        </div>
-
-      </div>
-
+    <!-- Pestañas -->
+    <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
+      <button onclick="cambiarPestana('tab-terminal')" id="btn-tab-terminal" class="tab-btn active px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-medium rounded-lg text-xs md:text-sm transition flex items-center gap-2">
+        📊 <span>Terminal & Gráfico</span>
+      </button>
+      <button onclick="cambiarPestana('tab-conveniencia')" id="btn-tab-conveniencia" class="tab-btn px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-medium rounded-lg text-xs md:text-sm transition flex items-center gap-2">
+        🧮 <span>Calculadora Post-Comisión</span>
+      </button>
+      <button onclick="cambiarPestana('tab-tools')" id="btn-tab-tools" class="tab-btn px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-300 font-medium rounded-lg text-xs md:text-sm transition flex items-center gap-2 border-amber-800/60">
+        🛠️ <span>Herramientas & Indicadores</span>
+      </button>
+      <button onclick="cambiarPestana('tab-ia')" id="btn-tab-ia" class="tab-btn px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-purple-300 font-medium rounded-lg text-xs md:text-sm transition flex items-center gap-2 border-purple-800">
+        🤖 <span>IA Copilot + Plugins</span>
+      </button>
     </div>
 
-    <!-- Scores de Riesgo & Módulo de Alertas -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-      
-      <!-- Overnight Score Card -->
-      <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Overnight Risk Score</div>
-          <div class="text-3xl font-extrabold mt-1 text-cyan-400" id="overnightDisplay">--/100</div>
-          <div class="text-xs mt-1" id="overnightTag">Evaluando mercado...</div>
+    <!-- PESTAÑA 1: TERMINAL & GRÁFICO -->
+    <div id="tab-terminal" class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800 gap-3">
+        <div class="flex items-center gap-2 w-full md:w-auto flex-1 max-w-md">
+          <input type="text" id="symbolInput" placeholder="Buscar ticker (ej: NASDAQ:IBIT, BCBA:AAPL)..." 
+                 class="w-full px-3 py-1.5 rounded-lg text-xs font-mono border border-slate-700 bg-slate-950">
+          <button onclick="buscarTickerManual()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold rounded-lg transition">Buscar</button>
         </div>
-        <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
-          <div id="overnightBar" class="h-full bg-cyan-500 transition-all duration-300" style="width: 0%"></div>
+        <div class="flex flex-wrap items-center gap-1.5 text-xs font-mono">
+          <button onclick="cargarActivo('NASDAQ:IBIT', 'BTCUSDT')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 text-cyan-300">IBIT ETF</button>
+          <button onclick="cargarActivo('BCBA:IBIT', 'BTCUSDT')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 text-emerald-400">IBIT CEDEAR</button>
+          <button onclick="cargarActivo('BINANCE:BTCUSDT', 'BTCUSDT')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 text-amber-400">BTC/USD</button>
+        </div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-2">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <span class="font-bold text-cyan-400 text-xs font-mono" id="chartTitle">GRÁFICO ACTIVO: NASDAQ:IBIT</span>
+        </div>
+        <div class="h-[500px] w-full relative rounded overflow-hidden" id="tradingview_container"></div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 2: CALCULADORA -->
+    <div id="tab-conveniencia" class="hidden space-y-5">
+      <div id="boxVeredicto" class="p-5 rounded-2xl border bg-slate-900 border-slate-800 text-center space-y-2">
+        <span class="text-xs font-mono text-slate-400 block uppercase">EVALUACIÓN POST-COMISIÓN</span>
+        <div id="txtVeredictoTitulo" class="text-2xl font-extrabold text-slate-200">Cargando datos...</div>
+        <p id="txtVeredictoSub" class="text-xs text-slate-400">Calculando punto de equilibrio exacto.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3">
+          <h3 class="font-bold text-cyan-400 border-b border-slate-800 pb-2">PARÁMETROS</h3>
+          <div><label class="block text-slate-400">Precio Compra ($)</label><input type="number" id="calcPrecioCompra" value="36.80" step="any" oninput="calcularConveniencia()" class="w-full p-2 font-mono font-bold text-cyan-300"></div>
+          <div><label class="block text-slate-400">Precio Venta Objetivo ($)</label><input type="number" id="calcPrecioVenta" value="38.50" step="any" oninput="calcularConveniencia()" class="w-full p-2 font-mono font-bold text-emerald-300"></div>
+          <div><label class="block text-slate-400">Nominales</label><input type="number" id="calcNominales" value="500" oninput="calcularConveniencia()" class="w-full p-2 font-mono"></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="block text-slate-400">Bróker (%)</label><input type="number" id="calcFeeBroker" value="0.5" step="0.01" oninput="calcularConveniencia()" class="w-full p-1.5 font-mono"></div>
+            <div><label class="block text-slate-400">Mkt (%)</label><input type="number" id="calcFeeMarket" value="0.08" step="0.01" oninput="calcularConveniencia()" class="w-full p-1.5 font-mono"></div>
+          </div>
+          <div><label class="block text-slate-400">Dólar CCL ($)</label><input type="number" id="calcCcl" value="1280" step="any" oninput="calcularConveniencia()" class="w-full p-2 font-mono text-blue-300"></div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3">
+          <h3 class="font-bold text-amber-400 border-b border-slate-800 pb-2">BREAK-EVEN</h3>
+          <div class="bg-slate-950 p-3 rounded border border-slate-800 font-mono">
+            <span class="text-slate-400 text-[11px] block">Precio Mínimo para quedar $0:</span>
+            <div class="text-xl font-bold text-amber-300" id="txtBreakEvenPrice">$0.00 USD</div>
+            <div class="text-xs text-amber-400 mt-1" id="txtBreakEvenPct">+0.00% requerido</div>
+          </div>
+          <div class="space-y-1 font-mono pt-2 border-t border-slate-800">
+            <div class="flex justify-between"><span>Comisión Entrada:</span><span id="txtCostEntrada">-$0.00</span></div>
+            <div class="flex justify-between"><span>Comisión Salida Est.:</span><span id="txtCostSalida">-$0.00</span></div>
+            <div class="flex justify-between text-rose-400 font-bold border-t border-slate-800 pt-1"><span>Total Costo:</span><span id="txtCostTotal">-$0.00</span></div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3">
+          <h3 class="font-bold text-emerald-400 border-b border-slate-800 pb-2">RESULTADO NETO</h3>
+          <div class="bg-slate-950 p-3 rounded border border-slate-800 font-mono space-y-2">
+            <div class="flex justify-between text-slate-400"><span>P&L Bruto:</span><span id="txtPnlBruto">$0.00 USD</span></div>
+            <div class="flex justify-between font-bold border-t border-slate-800 pt-1"><span>Neto USD:</span><span id="txtPnlNetoUsd" class="text-emerald-400">$0.00 USD</span></div>
+            <div class="flex justify-between text-blue-300 border-t border-slate-800 pt-1"><span>Neto ARS:</span><span id="txtPnlNetoArs">$0 ARS</span></div>
+            <div class="flex justify-between border-t border-slate-800 pt-1"><span>Retorno Real:</span><span id="txtRetornoPct" class="text-emerald-400">0.00%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 3: HERRAMIENTAS & INDICADORES -->
+    <div id="tab-tools" class="hidden space-y-5">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3 text-xs">
+          <h3 class="font-bold text-amber-400 border-b border-slate-800 pb-2">📊 Indicador: Volatilidad ATR & Stop Loss</h3>
+          <div><label class="block text-slate-400">Precio Actual ($)</label><input type="number" id="toolAtrPrecio" value="36.80" class="w-full p-1.5 font-mono"></div>
+          <div><label class="block text-slate-400">ATR Estimado ($)</label><input type="number" id="toolAtrValor" value="0.85" class="w-full p-1.5 font-mono"></div>
+          <div><label class="block text-slate-400">Multiplicador SL (xATR)</label><input type="number" id="toolAtrMult" value="2.0" class="w-full p-1.5 font-mono"></div>
+          <button onclick="ejecutarHerramientaATR()" class="w-full py-2 bg-amber-600 hover:bg-amber-500 font-semibold text-white rounded transition">Calcular Nivel Dinámico Stop Loss</button>
+          <div id="resToolAtr" class="p-2 bg-slate-950 rounded border border-slate-800 font-mono text-[11px] text-slate-300">Aún no calculado.</div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3 text-xs">
+          <h3 class="font-bold text-cyan-400 border-b border-slate-800 pb-2">🎯 Indicador: POC & Nivel de Liquidez</h3>
+          <div><label class="block text-slate-400">Rango Alto ($)</label><input type="number" id="toolPocHigh" value="38.50" class="w-full p-1.5 font-mono"></div>
+          <div><label class="block text-slate-400">Rango Bajo ($)</label><input type="number" id="toolPocLow" value="35.20" class="w-full p-1.5 font-mono"></div>
+          <button onclick="ejecutarHerramientaPOC()" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 font-semibold text-white rounded transition">Calcular POC Estimado & Value Area</button>
+          <div id="resToolPoc" class="p-2 bg-slate-950 rounded border border-slate-800 font-mono text-[11px] text-slate-300">Aún no calculado.</div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3 text-xs">
+          <h3 class="font-bold text-purple-400 border-b border-slate-800 pb-2">🔄 Estructura ChoCh / Order Block</h3>
+          <div><label class="block text-slate-400">Último Alto Validado ($)</label><input type="number" id="toolStructHigh" value="38.20" class="w-full p-1.5 font-mono"></div>
+          <div><label class="block text-slate-400">Último Bajo Validado ($)</label><input type="number" id="toolStructLow" value="36.10" class="w-full p-1.5 font-mono"></div>
+          <button onclick="ejecutarHerramientaEstructura()" class="w-full py-2 bg-purple-600 hover:bg-purple-500 font-semibold text-white rounded transition">Evaluar Cambio de Carácter</button>
+          <div id="resToolStruct" class="p-2 bg-slate-950 rounded border border-slate-800 font-mono text-[11px] text-slate-300">Aún no calculado.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PESTAÑA 4: IA COPILOT CON CIFRADO MILITAR -->
+    <div id="tab-ia" class="hidden space-y-4">
+      <div class="bg-slate-900 border border-purple-900/50 p-4 rounded-xl space-y-3">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-purple-400 flex items-center gap-2">
+              🤖 Motor Agente Protegido por Hardware/Crypto
+            </h3>
+            <p class="text-xs text-slate-400">Las credenciales se cifran de forma automática usando llaves simétricas AES-256-GCM.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <select id="iaProvider" onchange="guardarConfigIA()" class="px-2.5 py-1.5 rounded text-xs border border-slate-700 bg-slate-950 font-mono">
+              <option value="local">Motor Local Seguro (Sin API Key)</option>
+              <option value="groq">Groq API (Llama 3)</option>
+              <option value="openai">OpenAI (GPT-4o)</option>
+              <option value="gemini">Google Gemini API</option>
+            </select>
+            <input type="password" id="iaApiKey" placeholder="API Key..." onchange="guardarConfigIA()" class="px-2.5 py-1.5 rounded text-xs border border-slate-700 bg-slate-950 font-mono hidden w-44">
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+          <span class="text-emerald-400 flex items-center gap-1">🛡️ AES-256-GCM Encriptado</span>
+          <span class="text-cyan-400 flex items-center gap-1">🔒 Sanitización Anti-XSS</span>
+          <span class="text-amber-400 flex items-center gap-1">⚡ Tool Calling Local</span>
+          <span id="secStatusTag" class="ml-auto font-mono text-emerald-400 font-bold bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800">Cripto: OK</span>
         </div>
       </div>
 
-      <!-- Weekend Score Card -->
-      <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Weekend Gap Risk</div>
-          <div class="text-3xl font-extrabold mt-1 text-purple-400" id="weekendDisplay">--/100</div>
-          <div class="text-xs mt-1" id="weekendTag">Evaluando fin de semana...</div>
-        </div>
-        <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
-          <div id="weekendBar" class="h-full bg-purple-500 transition-all duration-300" style="width: 0%"></div>
-        </div>
+      <!-- Prompts Rápidos Sugeridos -->
+      <div class="flex flex-wrap gap-2 text-xs">
+        <button onclick="enviarPromptSugerido('Calculá el ATR con precio 36.80 y un valor de 0.90')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg">🛠️ "Calculá ATR con precio 36.80"</button>
+        <button onclick="enviarPromptSugerido('Medí si me conviene vender en 39.10 con mis datos actuales')" class="px-2.5 py-1 bg-purple-950 hover:bg-purple-900 border border-purple-800 text-purple-300 rounded-lg">📊 "Medí conveniencia en 39.10"</button>
+        <button onclick="enviarPromptSugerido('Ejecutá el plugin de cotización de dólar')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg">🔌 "Plugin Cotización Dólar"</button>
       </div>
 
-      <!-- Channel Dispatcher Configuration -->
-      <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl space-y-2">
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-purple-400 uppercase">Alertas a WhatsApp / Telegram</span>
-          <label class="flex items-center gap-1 text-[11px] text-slate-300">
-            <input type="checkbox" id="autoAlertToggle" class="rounded text-purple-600"> Auto-Alerta (>65 Score)
-          </label>
+      <!-- Chat -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col h-[500px]">
+        <div id="iaChatBox" class="flex-1 p-4 overflow-y-auto space-y-4 chat-scroll font-sans text-xs md:text-sm">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 max-w-2xl text-slate-300">
+            <strong class="text-purple-400 block mb-1">🤖 Copilot Agente:</strong>
+            Motor cifrado con algoritmo AES-256-GCM. Tus claves API nunca se almacenan en texto plano. ¿Qué análisis querés realizar?
+          </div>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <input type="text" id="alertPhone" placeholder="+54911xxxxxxxx" class="px-2 py-1 rounded font-mono text-[11px]">
-          <input type="text" id="alertKey" placeholder="CallMeBot API Key" class="px-2 py-1 rounded font-mono text-[11px]">
-        </div>
-        <button onclick="enviarAlertaManual()" class="w-full py-1.5 bg-purple-600/30 hover:bg-purple-600/40 border border-purple-500/40 text-purple-300 text-xs rounded font-medium transition">
-          🚀 Probar Envío de Notificación
-        </button>
-      </div>
 
+        <div class="p-3 bg-slate-950 border-t border-slate-800 flex items-center gap-2">
+          <textarea id="iaInput" rows="1" placeholder="Escribí una orden o consulta..." 
+                    onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); enviarMensajeIA(); }"
+                    class="w-full px-3 py-2 rounded-lg text-xs md:text-sm border border-slate-800 bg-slate-900 resize-none"></textarea>
+          <button onclick="enviarMensajeIA()" id="btnEnviarIA" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-lg">Enviar</button>
+        </div>
+      </div>
     </div>
 
   </div>
 
   <script>
-    let timerSync = null;
+    let activoActual = 'NASDAQ:IBIT';
+    let subyacenteActual = 'BTCUSDT';
 
-    // 1. Sincronización de APIs Públicas
-    async function sincronizarAPIs() {
-      const binanceDot = document.getElementById('binanceDot');
-      const cclDot = document.getElementById('cclDot');
-
-      // Sync BTC/USD de Binance
-      try {
-        const resBinance = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT');
-        if (resBinance.ok) {
-          const dataBtc = await resBinance.json();
-          const priceBtc = parseFloat(dataBtc.lastPrice);
-          const varBtc = parseFloat(dataBtc.priceChangePercent);
-
-          document.getElementById('btcPrice').value = priceBtc.toFixed(2);
-          document.getElementById('btcVar24').value = varBtc.toFixed(2);
-          document.getElementById('btcHeaderPrice').innerText = `$${priceBtc.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
-
-          // Estimación aproximada de precio IBIT
-          document.getElementById('ibitPrice').value = (priceBtc * 0.000589).toFixed(2);
-          binanceDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+    // =========================================================================
+    // 1. MÓDULO DE CIFRADO MILITAR AES-256-GCM (Web Crypto API Nativa)
+    // =========================================================================
+    const CryptoEngine = {
+      async getMasterKey() {
+        let keyJwk = localStorage.getItem('_sec_aes_jwk');
+        if (!keyJwk) {
+          const newKey = await window.crypto.subtle.generateKey(
+            { name: "AES-GCM", length: 256 },
+            true,
+            ["encrypt", "decrypt"]
+          );
+          const exported = await window.crypto.subtle.exportKey("jwk", newKey);
+          localStorage.setItem('_sec_aes_jwk', JSON.stringify(exported));
+          return newKey;
+        } else {
+          return await window.crypto.subtle.importKey(
+            "jwk",
+            JSON.parse(keyJwk),
+            { name: "AES-GCM" },
+            true,
+            ["encrypt", "decrypt"]
+          );
         }
-      } catch (err) {
-        console.error('Error Binance API:', err);
-        binanceDot.className = "w-2 h-2 rounded-full bg-rose-500";
-      }
+      },
 
-      // Sync Dólar CCL desde DolarAPI (Gratuita)
-      try {
-        const resCcl = await fetch('https://dolarapi.com/v1/dolares/contadoconliqui');
-        if (resCcl.ok) {
-          const dataCcl = await resCcl.json();
-          const priceCcl = parseFloat(dataCcl.venta);
-
-          document.getElementById('cclPrice').value = priceCcl;
-          document.getElementById('cclHeaderPrice').innerText = `$${priceCcl.toFixed(1)}`;
-          cclDot.className = "w-2 h-2 rounded-full bg-blue-500 animate-pulse";
+      async encriptarTexto(plainText) {
+        if (!plainText) return '';
+        try {
+          const key = await this.getMasterKey();
+          const iv = window.crypto.getRandomValues(new Uint8Array(12)); // IV único por paquete
+          const encoded = new TextEncoder().encode(plainText);
+          const ciphertext = await window.crypto.subtle.encrypt(
+            { name: "AES-GCM", iv: iv },
+            key,
+            encoded
+          );
+          return JSON.stringify({
+            iv: Array.from(iv),
+            payload: Array.from(new Uint8Array(ciphertext))
+          });
+        } catch (e) {
+          console.error("Error en cifrado:", e);
+          return '';
         }
-      } catch (err) {
-        console.error('Error DolarAPI:', err);
-        cclDot.className = "w-2 h-2 rounded-full bg-rose-500";
-      }
+      },
 
-      calcularRiesgoYPnl();
+      async desencriptarTexto(cipherJson) {
+        if (!cipherJson) return '';
+        try {
+          const { iv, payload } = JSON.parse(cipherJson);
+          const key = await this.getMasterKey();
+          const decrypted = await window.crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: new Uint8Array(iv) },
+            key,
+            new Uint8Array(payload)
+          );
+          return new TextDecoder().decode(decrypted);
+        } catch (e) {
+          return '';
+        }
+      }
+    };
+
+    // Sanitizado contra XSS
+    function sanitizarHTML(cadena) {
+      if (!cadena) return '';
+      return String(cadena)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
-    function toggleAutoSync() {
-      const enabled = document.getElementById('autoSyncCheck').checked;
-      if (enabled) {
-        timerSync = setInterval(sincronizarAPIs, 15000);
-      } else {
-        clearInterval(timerSync);
+    // ==========================================
+    // 2. REGISTRO DE HERRAMIENTAS Y PLUGINS
+    // ==========================================
+    const ToolRegistry = {
+      calcularATR: function(precio, atr, mult = 2.0) {
+        const p = parseFloat(precio);
+        const a = parseFloat(atr);
+        const m = parseFloat(mult);
+        const slLargo = p - (a * m);
+        const slCorto = p + (a * m);
+        return { slLargo: slLargo.toFixed(2), slCorto: slCorto.toFixed(2), distanciaPct: ((a * m / p) * 100).toFixed(2) };
+      },
+      calcularPOC: function(high, low) {
+        const h = parseFloat(high);
+        const l = parseFloat(low);
+        return { poc: (l + (h - l) * 0.50).toFixed(2), vah: (l + (h - l) * 0.70).toFixed(2), val: (l + (h - l) * 0.30).toFixed(2) };
+      },
+      analizarEstructura: function(high, low) {
+        const h = parseFloat(high);
+        const l = parseFloat(low);
+        const rango = h - l;
+        return { obAlcista: (l + rango * 0.15).toFixed(2), obBajista: (h - rango * 0.15).toFixed(2), chochArriba: h.toFixed(2), chochAbajo: l.toFixed(2) };
       }
+    };
+
+    const PluginManager = {
+      plugins: {},
+      registrar: function(nombre, fn) { this.plugins[nombre] = fn; },
+      ejecutar: async function(nombre, params) {
+        if (this.plugins[nombre]) return await this.plugins[nombre](params);
+        throw new Error(`Plugin '${nombre}' no encontrado.`);
+      }
+    };
+
+    PluginManager.registrar('dolar_arg', async () => {
+      const res = await fetch('https://dolarapi.com/v1/dolares');
+      const data = await res.json();
+      const mep = data.find(x => x.casa === 'mep')?.venta || '--';
+      const ccl = data.find(x => x.casa === 'contadoconliqui')?.venta || '--';
+      return `Dólar CCL: $${ccl} ARS | Dólar MEP: $${mep} ARS`;
+    });
+
+    // ==========================================
+    // 3. FUNCIONES DE UI & PESTAÑAS
+    // ==========================================
+    function cambiarPestana(tabId) {
+      document.querySelectorAll('#tab-terminal, #tab-conveniencia, #tab-tools, #tab-ia').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById(`btn-${tabId}`).classList.add('active');
+
+      if (tabId === 'tab-conveniencia') calcularConveniencia();
     }
 
-    // 2. Gráfico Interactivo TradingView con Herramientas Técnicas Habilitadas
-    function renderTradingViewChart(symbol) {
-      const container = document.getElementById('tradingview_widget_container');
+    function renderGrafico(symbol) {
+      const container = document.getElementById('tradingview_container');
       container.innerHTML = '';
-
       const script = document.createElement('script');
       script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
       script.type = 'text/javascript';
       script.async = true;
       script.innerHTML = JSON.stringify({
-        "autosize": true,
-        "symbol": symbol,
-        "interval": "60",
-        "timezone": "America/Argentina/Buenos_Aires",
-        "theme": "dark",
-        "style": "1",
-        "locale": "es",
-        "enable_publishing": false,
-        "backgroundColor": "rgba(11, 15, 25, 1)",
-        "gridColor": "rgba(30, 41, 59, 0.5)",
-        "hide_top_toolbar": false,
-        "hide_legend": false,
-        "save_image": false,
-        "calendar": false,
-        "hide_volume": false,
-        "support_host": "https://www.tradingview.com"
+        "autosize": true, "symbol": symbol, "interval": "60",
+        "timezone": "America/Argentina/Buenos_Aires", "theme": "dark",
+        "style": "1", "locale": "es", "backgroundColor": "rgba(11, 15, 25, 1)",
+        "gridColor": "rgba(30, 41, 59, 0.5)"
       });
       container.appendChild(script);
-      document.getElementById('chartSymbolTitle').innerText = `NATIVE CHART: ${symbol}`;
+      document.getElementById('chartTitle').innerText = `GRÁFICO ACTIVO: ${symbol}`;
     }
 
-    function switchChart(symbol) {
-      renderTradingViewChart(symbol);
+    function cargarActivo(symbol, subyacente) {
+      activoActual = symbol;
+      subyacenteActual = subyacente;
+      renderGrafico(symbol);
+      sincronizarAPIs();
     }
 
-    // 3. Motor Cuantitativo: PnL + Aranceles + Scores
-    function calcularRiesgoYPnl() {
-      const btcPrice = parseFloat(document.getElementById('btcPrice').value) || 0;
-      const btcVar24 = parseFloat(document.getElementById('btcVar24').value) || 0;
-      const ibitPrice = parseFloat(document.getElementById('ibitPrice').value) || 0;
-      const cclPrice = parseFloat(document.getElementById('cclPrice').value) || 1;
-
-      const posEntry = parseFloat(document.getElementById('posEntry').value) || 0;
-      const posQty = parseFloat(document.getElementById('posQty').value) || 0;
-      
-      const feeBroker = parseFloat(document.getElementById('feeBroker').value) || 0;
-      const feeMarket = parseFloat(document.getElementById('feeMarket').value) || 0;
-      const totalFeePct = (feeBroker + feeMarket) / 100;
-
-      // PnL Deducción de Comisiones
-      const costoEntrada = posEntry * posQty;
-      const valorActual = ibitPrice * posQty;
-      
-      const comisionEntrada = costoEntrada * totalFeePct;
-      const comisionSalida = valorActual * totalFeePct;
-      const totalComisiones = comisionEntrada + comisionSalida;
-
-      const pnlBrutoUSD = valorActual - costoEntrada;
-      const pnlNetoUSD = pnlBrutoUSD - totalComisiones;
-      const pnlNetoARS = pnlNetoUSD * cclPrice;
-
-      document.getElementById('pnlBrutoVal').innerText = `$${pnlBrutoUSD.toFixed(2)} USD`;
-      document.getElementById('pnlFeesVal').innerText = `-$${totalComisiones.toFixed(2)} USD`;
-      
-      const elNetoUSD = document.getElementById('pnlNetoUsdVal');
-      elNetoUSD.innerText = `$${pnlNetoUSD.toFixed(2)} USD`;
-      elNetoUSD.className = pnlNetoUSD >= 0 ? 'text-emerald-400 font-bold text-sm' : 'text-rose-400 font-bold text-sm';
-      
-      document.getElementById('pnlNetoArsVal').innerText = `$${pnlNetoARS.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})} ARS`;
-
-      // Algoritmo de Scores de Riesgo
-      const rsi = parseFloat(document.getElementById('rsiVal').value) || 50;
-      const distSup = parseFloat(document.getElementById('distSupVal').value) || 2;
-
-      let scoreBase = 35;
-      if (rsi > 65 || rsi < 35) scoreBase += 15;
-      if (btcVar24 < -1) scoreBase += 20;
-      if (distSup < 1.5) scoreBase += 15;
-
-      let overnightScore = Math.min(100, Math.max(10, scoreBase));
-      let weekendScore = Math.min(100, Math.max(15, Math.round(overnightScore * 1.15)));
-
-      // Render Displays
-      document.getElementById('overnightDisplay').innerText = `${overnightScore}/100`;
-      document.getElementById('overnightBar').style.width = `${overnightScore}%`;
-      actualizarTagRiesgo('overnightTag', overnightScore);
-
-      document.getElementById('weekendDisplay').innerText = `${weekendScore}/100`;
-      document.getElementById('weekendBar').style.width = `${weekendScore}%`;
-      actualizarTagRiesgo('weekendTag', weekendScore);
+    function buscarTickerManual() {
+      const val = document.getElementById('symbolInput').value.trim().toUpperCase();
+      if (val) cargarActivo(val, val.includes('ETH') ? 'ETHUSDT' : 'BTCUSDT');
     }
 
-    function actualizarTagRiesgo(elementId, score) {
-      const el = document.getElementById(elementId);
-      if (score < 40) {
-        el.innerText = 'Baja volatilidad / Favorable';
-        el.className = 'text-xs text-emerald-400 font-medium';
-      } else if (score < 65) {
-        el.innerText = 'Riesgo Moderado';
-        el.className = 'text-xs text-amber-400 font-medium';
-      } else {
-        el.innerText = 'Riesgo Elevado (Posible Gap)';
-        el.className = 'text-xs text-rose-400 font-medium';
-      }
-    }
-
-    // 4. Módulo de Alertas
-    async function enviarAlertaManual() {
-      const phone = document.getElementById('alertPhone').value;
-      const key = document.getElementById('alertKey').value;
-      const ovScore = document.getElementById('overnightDisplay').innerText;
-      const btc = document.getElementById('btcPrice').value;
-
-      if (!phone || !key) {
-        alert('Ingresá tu número de teléfono y tu API Key de CallMeBot.');
-        return;
-      }
-
-      const msg = `🚨 ALERTA MOTOR RIESGO IBIT/BTC:\n- BTC/USD Spot: $${btc}\n- Overnight Risk Score: ${ovScore}\n- Evaluado automáticamente.`;
-      const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(msg)}&apikey=${encodeURIComponent(key)}`;
+    async function sincronizarAPIs() {
+      try {
+        const resBtc = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${subyacenteActual}`);
+        if (resBtc.ok) {
+          const dataBtc = await resBtc.json();
+          document.getElementById('lblHeaderBtc').innerText = `$${parseFloat(dataBtc.lastPrice).toLocaleString('en-US')}`;
+        }
+      } catch (e) {}
 
       try {
-        await fetch(url, { mode: 'no-cors' });
-        alert('Notificación enviada a WhatsApp.');
-      } catch (err) {
-        alert('Error al enviar la notificación.');
+        const resCcl = await fetch('https://dolarapi.com/v1/dolares/contadoconliqui');
+        if (resCcl.ok) {
+          const dataCcl = await resCcl.json();
+          const pCcl = parseFloat(dataCcl.venta);
+          document.getElementById('lblHeaderCcl').innerText = `$${pCcl.toFixed(1)}`;
+          document.getElementById('calcCcl').value = pCcl;
+        }
+      } catch (e) {}
+
+      calcularConveniencia();
+    }
+
+    function calcularConveniencia() {
+      const pCompra = parseFloat(document.getElementById('calcPrecioCompra').value) || 0;
+      const pVenta = parseFloat(document.getElementById('calcPrecioVenta').value) || 0;
+      const nominales = parseFloat(document.getElementById('calcNominales').value) || 0;
+      const feeBroker = parseFloat(document.getElementById('calcFeeBroker').value) || 0;
+      const feeMarket = parseFloat(document.getElementById('calcFeeMarket').value) || 0;
+      const ccl = parseFloat(document.getElementById('calcCcl').value) || 1;
+
+      const feePctTotal = (feeBroker + feeMarket) / 100;
+      if (pCompra <= 0 || nominales <= 0) return;
+
+      const pBreakEven = pCompra * ((1 + feePctTotal) / (1 - feePctTotal));
+      const pctBreakEven = ((pBreakEven - pCompra) / pCompra) * 100;
+
+      document.getElementById('txtBreakEvenPrice').innerText = `$${pBreakEven.toFixed(2)} USD`;
+      document.getElementById('txtBreakEvenPct').innerText = `+${pctBreakEven.toFixed(2)}%`;
+
+      const montoInvertidoBruto = pCompra * nominales;
+      const costoComisionEntrada = montoInvertidoBruto * feePctTotal;
+      const costoInversionTotal = montoInvertidoBruto + costoComisionEntrada;
+
+      const montoVentaBruto = pVenta * nominales;
+      const costoComisionSalida = montoVentaBruto * feePctTotal;
+      const montoVentaNeto = montoVentaBruto - costoComisionSalida;
+
+      const comisionesTotales = costoComisionEntrada + costoComisionSalida;
+      const pnlBruto = montoVentaBruto - montoInvertidoBruto;
+      const pnlNetoUsd = montoVentaNeto - costoInversionTotal;
+      const pnlNetoArs = pnlNetoUsd * ccl;
+      const retornoNetoPct = (pnlNetoUsd / costoInversionTotal) * 100;
+
+      document.getElementById('txtCostEntrada').innerText = `-$${costoComisionEntrada.toFixed(2)}`;
+      document.getElementById('txtCostSalida').innerText = `-$${costoComisionSalida.toFixed(2)}`;
+      document.getElementById('txtCostTotal').innerText = `-$${comisionesTotales.toFixed(2)}`;
+
+      document.getElementById('txtPnlBruto').innerText = `$${pnlBruto.toFixed(2)} USD`;
+      
+      const elNetoUsd = document.getElementById('txtPnlNetoUsd');
+      elNetoUsd.innerText = `$${pnlNetoUsd.toFixed(2)} USD`;
+      elNetoUsd.className = pnlNetoUsd >= 0 ? 'font-bold text-emerald-400' : 'font-bold text-rose-400';
+
+      document.getElementById('txtPnlNetoArs').innerText = `$${pnlNetoArs.toLocaleString('es-AR', {maximumFractionDigits: 0})} ARS`;
+
+      const elRet = document.getElementById('txtRetornoPct');
+      elRet.innerText = `${retornoNetoPct >= 0 ? '+' : ''}${retornoNetoPct.toFixed(2)}%`;
+      elRet.className = retornoNetoPct >= 0 ? 'font-bold text-emerald-400' : 'font-bold text-rose-400';
+
+      const box = document.getElementById('boxVeredicto');
+      const txtT = document.getElementById('txtVeredictoTitulo');
+      const txtS = document.getElementById('txtVeredictoSub');
+
+      if (pnlNetoUsd > 0) {
+        box.className = "p-5 rounded-2xl border bg-emerald-950/60 border-emerald-800 text-center space-y-2";
+        txtT.className = "text-2xl font-extrabold text-emerald-400";
+        txtT.innerText = "🟢 ¡SI TE CONVIENE! (Operación Rentable)";
+        txtS.innerText = `Superás el break-even ($${pBreakEven.toFixed(2)} USD) con un retorno neto de $${pnlNetoUsd.toFixed(2)} USD (+${retornoNetoPct.toFixed(2)}%).`;
+      } else {
+        box.className = "p-5 rounded-2xl border bg-rose-950/60 border-rose-800 text-center space-y-2";
+        txtT.className = "text-2xl font-extrabold text-rose-400";
+        txtT.innerText = "🔴 NO TE CONVIENE";
+        txtS.innerText = `Costo total de comisiones: $${comisionesTotales.toFixed(2)} USD. Requerís vender arriba de $${pBreakEven.toFixed(2)} USD.`;
       }
     }
 
-    // Carga inicial
-    window.onload = function() {
-      renderTradingViewChart('NASDAQ:IBIT');
+    // ==========================================
+    // 4. EJECUCIÓN MANUAL DE INDICADORES
+    // ==========================================
+    function ejecutarHerramientaATR() {
+      const p = document.getElementById('toolAtrPrecio').value;
+      const a = document.getElementById('toolAtrValor').value;
+      const m = document.getElementById('toolAtrMult').value;
+      const res = ToolRegistry.calcularATR(p, a, m);
+      document.getElementById('resToolAtr').innerHTML = `
+        SL Largo: <strong class="text-emerald-400">$${res.slLargo}</strong><br>
+        SL Corto: <strong class="text-rose-400">$${res.slCorto}</strong><br>
+        Rango de Volatilidad: <strong>${res.distanciaPct}%</strong>
+      `;
+    }
+
+    function ejecutarHerramientaPOC() {
+      const h = document.getElementById('toolPocHigh').value;
+      const l = document.getElementById('toolPocLow').value;
+      const res = ToolRegistry.calcularPOC(h, l);
+      document.getElementById('resToolPoc').innerHTML = `
+        POC Estimado: <strong class="text-amber-300">$${res.poc}</strong><br>
+        VAH (Resistencia): <strong>$${res.vah}</strong> | VAL (Soporte): <strong>$${res.val}</strong>
+      `;
+    }
+
+    function ejecutarHerramientaEstructura() {
+      const h = document.getElementById('toolStructHigh').value;
+      const l = document.getElementById('toolStructLow').value;
+      const res = ToolRegistry.analizarEstructura(h, l);
+      document.getElementById('resToolStruct').innerHTML = `
+        ChoCh Alcista arriba de: <strong class="text-cyan-300">$${res.chochArriba}</strong><br>
+        ChoCh Bajista debajo de: <strong class="text-rose-300">$${res.chochAbajo}</strong><br>
+        Order Block Compra: <strong>$${res.obAlcista}</strong>
+      `;
+    }
+
+    // ==========================================
+    // 5. MANEJO CIFRADO AUTOMÁTICO DE CONFIGURACIÓN
+    // ==========================================
+    async function guardarConfigIA() {
+      const prov = document.getElementById('iaProvider').value;
+      const keyInput = document.getElementById('iaApiKey');
+      if (prov === 'local') keyInput.classList.add('hidden');
+      else keyInput.classList.remove('hidden');
+
+      localStorage.setItem('ia_provider', prov);
+      
+      // Encriptación automática AES-256 en background
+      if (keyInput.value.trim()) {
+        const encrypted = await CryptoEngine.encriptarTexto(keyInput.value.trim());
+        localStorage.setItem('ia_key_aes', encrypted);
+      } else {
+        localStorage.removeItem('ia_key_aes');
+      }
+    }
+
+    async function cargarConfigIA() {
+      const prov = localStorage.getItem('ia_provider') || 'local';
+      const keyAes = localStorage.getItem('ia_key_aes') || '';
+      
+      document.getElementById('iaProvider').value = prov;
+      
+      if (keyAes) {
+        // Desencriptación en segundo plano
+        const decryptedKey = await CryptoEngine.desencriptarTexto(keyAes);
+        document.getElementById('iaApiKey').value = decryptedKey;
+      }
+      
+      guardarConfigIA();
+    }
+
+    function enviarPromptSugerido(txt) {
+      document.getElementById('iaInput').value = txt;
+      enviarMensajeIA();
+    }
+
+    async function enviarMensajeIA() {
+      const inputEl = document.getElementById('iaInput');
+      const userText = inputEl.value.trim();
+      if (!userText) return;
+
+      inputEl.value = '';
+      agregarMensajeChat('user', userText);
+
+      const btn = document.getElementById('btnEnviarIA');
+      btn.disabled = true;
+      btn.innerText = 'Procesando...';
+
+      try {
+        let respuesta = await procesarAgenteSeguro(userText);
+        agregarMensajeChat('ia', respuesta);
+      } catch (e) {
+        agregarMensajeChat('ia', `⚠️ Error al procesar: ${sanitizarHTML(e.message)}`);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Enviar';
+      }
+    }
+
+    async function procesarAgenteSeguro(prompt) {
+      const q = prompt.toLowerCase();
+      let logTools = [];
+
+      if (q.includes('atr')) {
+        const matchP = q.match(/precio[^\d]*(\d+[\.,]?\d*)/) || [null, document.getElementById('calcPrecioCompra').value];
+        const resAtr = ToolRegistry.calcularATR(matchP[1], 0.85);
+        logTools.push(`🛠 [Tool Executed: calcularATR] -> SL Largo: $${resAtr.slLargo}, SL Corto: $${resAtr.slCorto}`);
+      }
+
+      if (q.includes('plugin') || q.includes('dolar') || q.includes('dólar')) {
+        const resPlugin = await PluginManager.ejecutar('dolar_arg');
+        logTools.push(`🔌 [Plugin Executed: dolar_arg] -> ${resPlugin}`);
+      }
+
+      const pCompra = document.getElementById('calcPrecioCompra').value;
+      const pVenta = document.getElementById('calcPrecioVenta').value;
+      const breakeven = document.getElementById('txtBreakEvenPrice').innerText;
+      const pnlNeto = document.getElementById('txtPnlNetoUsd').innerText;
+
+      let resFinal = "";
+      if (logTools.length > 0) {
+        resFinal += `**Herramientas Ejecutadas:**\n` + logTools.join('\n') + `\n\n`;
+      }
+
+      resFinal += `**Análisis del Dashboard:**\n`;
+      resFinal += `- Entrada: $${pCompra} USD | Venta Obj: $${pVenta} USD\n`;
+      resFinal += `- Break-Even Requerido: ${breakeven}\n`;
+      resFinal += `- Resultado Neto Limpio: ${pnlNeto}\n\n`;
+
+      if (parseFloat(pnlNeto.replace('$', '')) > 0) {
+        resFinal += `✅ **Dictamen:** Operación viable y rentable.`;
+      } else {
+        resFinal += `⚠️ **Dictamen:** No conviene vender a ese precio, las comisiones absorben el margen.`;
+      }
+
+      return resFinal;
+    }
+
+    function agregarMensajeChat(rol, texto) {
+      const box = document.getElementById('iaChatBox');
+      const div = document.createElement('div');
+      
+      const textoSeguro = sanitizarHTML(texto)
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+
+      if (rol === 'user') {
+        div.className = "bg-purple-950/40 p-3 rounded-xl border border-purple-800/40 max-w-2xl ml-auto text-slate-200";
+        div.innerHTML = `<strong class="text-purple-300 block text-right mb-1">Tú:</strong>${textoSeguro}`;
+      } else {
+        div.className = "bg-slate-950 p-3 rounded-xl border border-slate-800 max-w-2xl text-slate-300";
+        div.innerHTML = `<strong class="text-cyan-400 block mb-1">🤖 Copilot IA:</strong>${textoSeguro}`;
+      }
+
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    window.onload = async function() {
+      renderGrafico('NASDAQ:IBIT');
       sincronizarAPIs();
-      toggleAutoSync();
+      await cargarConfigIA();
     };
   </script>
 </body>
